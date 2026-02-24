@@ -1,0 +1,76 @@
+{
+  "questions": {
+    "1": {
+      "T": "Given vector A = (3, 4), calculate its magnitude and explain the formula used.",
+      "I": "sample.png",
+      "CL": ["1"]
+    },
+    "2": {
+      "T": "Two vectors A = (2, 1) and B = (1, 3) are added using the Triangle Law. Find the resultant vector and explain the geometric interpretation.",
+      "I": "sample.png",
+      "CL": ["1", "2"]
+    },
+    "3": {
+      "T": "Demonstrate vector addition of A = (4, 0) and B = (0, 3) using the Parallelogram Law and compute the magnitude and direction of the resultant.",
+      "I": "sample.png",
+      "CL": ["2"]
+    }
+  },
+  "answers": {
+    "abc123": {
+      "1": {
+        "T": "Magnitude = sqrt(3^2 + 4^2) = 5. Used Pythagoras theorem.",
+        "I": "sample.png"
+      },
+      "2": {
+        "T": "Resultant = (3,4). Constructed head-to-tail using triangle law.",
+        "I": "sample.png"
+      },
+      "3": {
+        "T": "Resultant = (4,3). Used diagonal of parallelogram."
+      }
+    },
+    "xyz456": {
+      "1": {
+        "T": "Magnitude = 7 (incorrect calculation)."
+      },
+      "2": {
+        "T": "Added components incorrectly but attempted triangle construction.",
+        "I": "sample.png"
+      },
+      "3": {
+        "T": "Used parallelogram but direction explanation incomplete.",
+        "I": "sample.png"
+      }
+    }
+  },
+  "concept_link": {
+    "1": {
+      "name": "Magnitude computation and geometric interpretation",
+      "scoring_guide": {
+        "1": "Correct use of magnitude formula √(x² + y²)",
+        "2": "Correct numerical computation",
+        "3": "Clear geometric explanation"
+      },
+      "links": ["1", "2"]
+    },
+    "2": {
+      "name": "Vector addition using Triangle and Parallelogram laws",
+      "scoring_guide": {
+        "1": "Correct component-wise addition",
+        "2": "Correct geometric construction",
+        "3": "Correct magnitude of resultant",
+        "4": "Correct direction explanation"
+      },
+      "links": ["1", "2"]
+    }
+  },
+  "concept_hierarchy": {
+    "1": {
+      "name": "Triangle Law of Vector Addition"
+    },
+    "2": {
+      "name": "Parallelogram Law of Vector Addition"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # MMGrader – Input JSON Format Specification
 
-This document defines the required input JSON structure for MMGrader.
+This document defines the required input JSON structure for MMGrader. Do check our [sample file](samples/sample3.json).
 
 The input file must contain the following top-level keys:
 

@@ -63,11 +63,12 @@ class AbstractModel():
         mime_type = f"image/{extension[1:].lower()}"
         
         return f"data:{mime_type};base64,{encoded_string}"
+
 class Dummy(AbstractModel):
     def __str__(self):
         return 'Molmo'
     
-    def prompt_model(self):
+    def prompt_model(self,data):
         return "2"
     
 class Molmo(AbstractModel):
@@ -90,9 +91,9 @@ class Molmo(AbstractModel):
         return 'Molmo'
     
     def prompt_model(self,data=None,extract=True):
-        images_process=[Image.fromarray(data['question']['I'])]                                                                                                                                             
+        images_process=[Image.open(data['question']['I'])]                                                                                                                                            
         if(not data['answer']['I'] is None):                                                                                                                                                                
-            images_process.append(Image.fromarray(data['answer']['I']))                                                                                                                                     
+            images_process.append(Image.open(data['answer']['I']))                                                                                                                                     
         system_prompt=self.CL_SCORE_PROMPT.format(cl_desc=data['concept_link_score'])
         user_prompt=f"""                                                                                                                                                                                    
 Here is the Question, Concept Link and Student Answer.                                                                                                                                                      
@@ -143,9 +144,9 @@ class LLamaVision():
     
 
     def prompt_model(self,data=None,extract=True):
-        images_process=[Image.fromarray(data['question']['I'])]                                                                                                                                             
+        images_process=[Image.open(data['question']['I'])]                                                                                                                                             
         if(not data['answer']['I'] is None):                                                                                                                                                                
-            images_process.append(Image.fromarray(data['answer']['I']))                                                                                                                                     
+            images_process.append(Image.open(data['answer']['I']))                                                                                                                                     
         system_prompt=self.CL_SCORE_PROMPT.format(cl_desc=data['concept_link_score'])
         user_prompt=f"""                                                                                                                                                                                    
 Here is the Question, Concept Link and Student Answer.                                                                                                                                                      
@@ -197,7 +198,7 @@ class Pixtral(AbstractModel):
 
     def numpy_to_data_url(self,img_array):
         """Convert a NumPy array to a base64 data URL (JPEG)."""
-        pil_img = Image.fromarray(img_array.astype("uint8"))
+        pil_img = Image.open(img_array.astype("uint8"))
         buf = io.BytesIO()
         pil_img.save(buf, format="JPEG")
         base64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
@@ -251,7 +252,7 @@ class Gemini(AbstractModel):
 
     def numpy_to_base64(self,img_array):
         """Convert a NumPy array to a base64 data URL (JPEG)."""
-        pil_img = Image.fromarray(img_array.astype("uint8"))
+        pil_img = Image.open(img_array.astype("uint8"))
         buf = io.BytesIO()
         pil_img.save(buf, format="JPEG")
         base64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
@@ -361,8 +362,10 @@ class Gemma(AbstractModel):
 
     def numpy_to_data_url(self,img_array):
         """Convert a NumPy array to a base64 data URL (JPEG)."""
-        pil_img = Image.fromarray(img_array.astype("uint8"))
+        pil_img = Image.open(img_array)#.astype("uint8")
         buf = io.BytesIO()
+        if(pil_img.mode == "RGBA"):
+            pil_img = pil_img.convert("RGB")
         pil_img.save(buf, format="JPEG")
         base64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
         return {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_str}"}}
@@ -427,9 +430,9 @@ Concept Link : {data['concept_link']}
 """     
         
         content_list = [{"type": "image"}]
-        images = [Image.fromarray(data['question']['I'])]
+        images = [Image.open(data['question']['I'])]
         if(not data['answer']['I'] is None):
-            images.append(Image.fromarray(data['answer']['I']))
+            images.append(Image.open(data['answer']['I']))
             content_list.append({"type": "image"})
         content_list.append({"type": "text", "text": self.CL_SCORE_PROMPT+"\n"+user_prompt})
         messages = [
@@ -471,8 +474,10 @@ class Granite(AbstractModel):
 
     def numpy_to_data_url(self,img_array):
         """Convert a NumPy array to a base64 data URL (JPEG)."""
-        pil_img = Image.fromarray(img_array.astype("uint8"))
+        pil_img = Image.open(img_array)
         buf = io.BytesIO()
+        if(pil_img.mode == "RGBA"):
+            pil_img = pil_img.convert("RGB")
         pil_img.save(buf, format="JPEG")
         base64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
         return {"type": "image", "url": f"data:image/jpeg;base64,{base64_str}"}
@@ -545,7 +550,9 @@ class Qwen(AbstractModel):
 
     def numpy_to_data_url(self,img_array):
         """Convert a NumPy array to a base64 data URL (JPEG)."""
-        pil_img = Image.fromarray(img_array.astype("uint8"))
+        pil_img = Image.open(img_array)
+        if(pil_img.mode == "RGBA"):
+            pil_img = pil_img.convert("RGB")
         buf = io.BytesIO()
         pil_img.save(buf, format="JPEG")
         base64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
@@ -615,182 +622,3 @@ Concept Link : {data['concept_link']}
                     score=score.group().replace('<Score>','').replace('</Score>','').strip()
                     return score
         return response_cleaned
-
-class InternLMS1(AbstractModel):
-    def __init__(self,CL_SCORE_PROMPT):
-        self.CL_SCORE_PROMPT=CL_SCORE_PROMPT
-        model_name = "internlm/Intern-S1-mini-FP8"
-        self.processor = AutoProcessor.from_pretrained(model_name, trust_remote_code=True)
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            device_map="auto",
-            torch_dtype="auto",
-            trust_remote_code=True
-        )
-
-    def __str__(self):
-        return 'InternLMS1'
-
-    def numpy_to_data_url(self,img_array):
-        """Convert a NumPy array to a base64 data URL (JPEG)."""
-        pil_img = Image.fromarray(img_array.astype("uint8"))
-        buf = io.BytesIO()
-        pil_img.save(buf, format="JPEG")
-        base64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
-        return {"type": "image", "iamge": pil_img}
-
-    def prompt_model(self,data=None,extract=True):                                                                                                                                                     
-        system_prompt=self.CL_SCORE_PROMPT.format(cl_desc=data['concept_link_score'])                                                                                                                                                                       
-        user_prompt=f"""                                                                                                                                                                                    
-Here is the Question, Concept Link and Student Answer.                                                                                                                                                      
-Note that in the images provided the first image belongs to the question{'' if data['answer']['I'] is None else ' and the second image if present is part of the student answer'}.                          
-                                                                                                                                                                                                            
-Question : {data['question']['T']}                                                                                                                                                                          
-Student Answer : {data['answer']['T'] if data['answer']['T'] else None}                                                                                                                                     
-Concept Link : {data['concept_link']}                                                                                                                                                                       
-"""     
-
-        content_list = []
-        content_list.append(self.numpy_to_data_url(data['question']['I']))
-        if(not data['answer']['I'] is None):
-            content_list.append(self.numpy_to_data_url(data['answer']['I']))
-        content_list.append({"type": "text", "text": user_prompt})
-        messages = [
-            {
-                "role": "system",
-                "content": [
-                    {"type": "text", "text": system_prompt}
-                ],
-            },
-            {
-                "role": "user",
-                "content": content_list
-            }
-        ]
-        # Preparation for inference
-        # Tokenize
-        inputs = self.processor.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt"
-        ).to(self.model.device, dtype=torch.bfloat16)
-
-        # Generate response
-        generate_ids = self.model.generate(
-            **inputs,
-            max_new_tokens=512,
-            do_sample=True,
-            temperature=0.7,
-            top_p=0.9
-        )
-
-        decoded_output = self.processor.decode(
-            generate_ids[0, inputs["input_ids"].shape[1]:],
-            skip_special_tokens=True
-        )   
-        response_cleaned=decoded_output
-
-        if(extract):
-            if(response_cleaned.strip().isdigit()):
-                return response_cleaned
-            else:
-                score=re.search('<Score>.*</Score>',response_cleaned,flags=re.DOTALL)
-                if(score is None):
-                    temp=response_cleaned.replace('<','').replace('>','')
-                    if(temp.isdigit()):
-                        return temp
-                else:
-                    score=score.group().replace('<Score>','').replace('</Score>','').strip()
-                    return score
-        return response_cleaned
-
-'''
-class DeepSeek(AbstractModel):
-    def __init__(self,CL_SCORE_PROMPT):
-        self.CL_SCORE_PROMPT=CL_SCORE_PROMPT
-        model_path = "deepseek-ai/deepseek-vl2-small"
-        self.processor = DeepseekVLV2Processor.from_pretrained(model_path)
-        self.model: DeepseekVLV2ForCausalLM = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
-        self.model = self.model.to(torch.bfloat16).cuda().eval()
-
-    def __str__(self):
-        return 'Qwen'
-
-    def numpy_to_data_url(self,img_array):
-        """Convert a NumPy array to a base64 data URL (JPEG)."""
-        pil_img = Image.fromarray(img_array.astype("uint8"))
-        buf = io.BytesIO()
-        pil_img.save(buf, format="JPEG")
-        base64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
-        return pil_img
-        #return f"data:image/jpeg;base64,{base64_str}"
-
-    def prompt_model(self,data=None,extract=True):                                                                                                                                                     
-        system_prompt=self.CL_SCORE_PROMPT.format(cl_desc=data['concept_link_score'])                                                                                                                                                                       
-        user_prompt=f"""                                                                                                                                                                                    
-Here is the Question, Concept Link and Student Answer.                                                                                                                                                      
-Note that in the images provided the first image belongs to the question{'' if data['answer']['I'] is None else ' and the second image if present is part of the student answer'}.                          
-                                                                                                                                                                                                            
-Question : {data['question']['T']}                                                                                                                                                                          
-Student Answer : {data['answer']['T'] if data['answer']['T'] else None}                                                                                                                                     
-Concept Link : {data['concept_link']}                                                                                                                                                                       
-"""     
-        # Conversation with multiple base64 images
-        cv2.imwrite('ques.jpg',data['question']['I'])
-        conversation = [
-            {
-                "role": "<|User|>",
-                "content": 'Question Image : "Question Image : <image>\n',
-                "images": ['ques.jpg'],  # base64 strings
-            },
-            {"role": "<|Assistant|>", "content": ""},
-        ]
-
-        content_list = []
-        if(not data['answer']['I'] is None):
-            cv2.imwrite('answer.jpg',data['answer']['I'])
-            conversation[0]['images'].append('answer.jpg',data['answer']['I'])
-            conversation[0]['content']=conversation[0]['content']+"Student Answer Image : <image>\n"
-        conversation[0]['content']=conversation[0]['content']+f"<|ref|>{user_prompt}<|/ref|>"
-        pil_images = load_pil_images(conversation)
-        # No need to call load_pil_images if all are base64
-        inputs = self.processor(
-            conversations=conversation,
-            images=pil_images,               # <-- pass None if all images are already base64
-            force_batchify=True,
-            system_prompt=system_prompt
-        ).to(self.model.device)
-
-        # Run generation
-        inputs_embeds = self.model.prepare_inputs_embeds(**inputs)
-        outputs = self.model.language_model.generate(
-            inputs_embeds=inputs_embeds,
-            attention_mask=inputs.attention_mask,
-            pad_token_id=processor.tokenizer.eos_token_id,
-            bos_token_id=processor.tokenizer.bos_token_id,
-            eos_token_id=processor.tokenizer.eos_token_id,
-            max_new_tokens=256,
-            do_sample=False,
-            use_cache=True
-        )
-
-        # Decode output
-        response = self.processor.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        response_cleaned = output_text
-        response_cleaned=response_cleaned.split('\n\n<|assistant|>\n')[-1].replace('\\n',' ')
-        if(extract):
-            if(response_cleaned.strip().isdigit()):
-                return response_cleaned
-            else:
-                score=re.search('<Score>.*</Score>',response_cleaned,flags=re.DOTALL)
-                if(score is None):
-                    temp=response_cleaned.replace('<','').replace('>','')
-                    if(temp.isdigit()):
-                        return temp
-                else:
-                    score=score.group().replace('<Score>','').replace('</Score>','').strip()
-                    return score
-        return response_cleaned
-    '''

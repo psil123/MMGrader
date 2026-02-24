@@ -269,15 +269,22 @@ class MentalModel:
         plt.figure(figsize=(12, 8))
 
         # Draw edges
-        nx.draw_networkx_edges(G, pos)
+        # nx.draw_networkx_edges(G, pos)
+        
 
         # Draw edge weights
+        
+        edges = G.edges(data=True)
+        weights = [d["weight"] for (_, _, d) in G.edges(data=True)]
+        # nx.draw_networkx_edges(G, pos, )
+        colors = ["red" if d["weight"] < 2 else "green" for (_, _, d) in edges]
+        nx.draw_networkx_edges(G, pos, edge_color=colors, width=[w * 1.5 for w in weights])
+
         edge_labels = {
             (u, v): round(d["weight"], 2)
             for u, v, d in G.edges(data=True)
         }
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-
         # Draw rectangular node labels using stored label
         for node_id, (x, y) in pos.items():
             label = G.nodes[node_id]["label"]

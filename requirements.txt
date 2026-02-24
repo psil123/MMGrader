@@ -1,0 +1,5 @@
+tensorflow
+accelerate
+transformers
+qwen-vl-utils
+vllm

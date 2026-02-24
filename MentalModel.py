@@ -226,7 +226,12 @@ class MentalModel:
                     data['concept_link']=self.concept_link[c_link]['name']
                     data['concept_link_score']=''.join(f"{k} : {v}\n" for k,v in self.concept_link[c_link]['scoring_guide'].items())
                     score=self.model.prompt_model(data)
-                    self.mm[rollno][questionno][c_link]=int(score)
+                    try:
+                        score=int(score)
+                    except:
+                        print(f"Failed to generate score for {rollno} {questionno} {c_link}")
+                        score=0
+                    self.mm[rollno][questionno][c_link]=score
             temp=self.build_mental_model(rollno)
             self.mmgraph[rollno]=temp
             
